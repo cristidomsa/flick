@@ -1,12 +1,25 @@
 import os
 from moviepy.editor import CompositeVideoClip, VideoFileClip
+from moviepy.video.fx.all import crop
+from contextlib import redirect_stdout
+
+import sys
+
+class Logger(object):
+    def __init__(self, filename="Default.log"):
+        self.terminal = sys.stdout
+        self.log = open(filename, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
 
 class Flick:
 
     def __init__(self, back_video, over_video, ext_video):
         self.resize_factor = 0.5
 
-        self.v1 = VideoFileClip(back_video)
+        self.v1 = crop(VideoFileClip(back_video), y1=104, y2=860)
         self.v2 = VideoFileClip(over_video)
         self.v3 = None
         self.pos = (0, 0)
@@ -33,12 +46,15 @@ class Flick:
     
     def write_video(self):
         if os.path.isfile(self.v3_name):
-            print(self.v3_name + 'exists')
+            return -1
         else:
-            self.v3.write_videofile(self.v3_name)
+            return self.v3.write_videofile(self.v3_name)
+
 
     def run(self):
 
+        sys.stdout = Logger()
+
         self._make_adjustments()
         self.compute_video()
-        self.write_video()
+        return self.write_video()
